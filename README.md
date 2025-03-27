@@ -9,6 +9,31 @@
 
 A better fetch API. Works on node, browser, and workers.
 
+## 📖 代码阅读推荐顺序 (Recommended Reading Order)
+
+以下是推荐的代码阅读顺序，帮助你更好地理解这个项目：
+
+1. [**src/index.ts**](src/index.ts) - 主入口文件，导出所有公共 API
+2. [**src/types.ts**](src/types.ts) - 类型定义，了解整个库的接口结构
+3. [**src/fetch.ts**](src/fetch.ts) - 核心功能实现，ofetch 主函数
+4. [**src/base.ts**](src/base.ts) - 基础功能和实用函数
+5. [**src/error.ts**](src/error.ts) - 错误处理相关
+6. [**src/node.ts**](src/node.ts) - Node.js 环境特定功能
+7. [**src/utils.ts**](src/utils.ts) - 通用工具函数
+8. [**examples/first-request.mjs**](examples/first-request.mjs) - 第一个请求示例
+9. [**examples/methods.mjs**](examples/methods.mjs) - HTTP 方法使用示例
+10. [**examples/headers.mjs**](examples/headers.mjs) - 请求头部设置示例
+11. [**examples/body.mjs**](examples/body.mjs) - 请求体处理示例
+12. [**examples/error-handling.mjs**](examples/error-handling.mjs) - 错误处理示例
+13. [**examples/proxy.mjs**](examples/proxy.mjs) - 代理使用示例
+14. [**examples/query-string.mjs**](examples/query-string.mjs) - 查询参数示例
+15. [**examples/type-safety.ts**](examples/type-safety.ts) - TypeScript 类型示例
+16. [**test/index.test.ts**](test/index.test.ts) - 核心功能测试
+
+按照这个顺序阅读将帮助你从整体到细节逐步理解这个库的实现。
+
+---
+
 <details>
   <summary>Spoiler</summary>
   <img src="https://media.giphy.com/media/Dn1QRA9hqMcoMz9zVZ/giphy.gif">

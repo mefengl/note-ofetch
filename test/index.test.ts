@@ -1,3 +1,17 @@
+/**
+ * ofetch 测试文件
+ * 这个文件包含了 ofetch 库的主要功能测试
+ * 包括：
+ * 1. 基本请求功能
+ * 2. 响应解析
+ * 3. 请求体处理
+ * 4. 错误处理
+ * 5. 超时处理
+ * 6. 二进制数据处理
+ * 7. 请求头处理
+ * 8. 代理支持
+ */
+
 import { Readable } from "node:stream";
 import { listen } from "listhen";
 import { getQuery, joinURL } from "ufo";
@@ -24,24 +38,31 @@ import { $fetch } from "../src/node";
 
 describe("ofetch", () => {
   let listener;
+  // 获取测试服务器的完整 URL
   const getURL = (url) => joinURL(listener.url, url);
 
+  // 模拟全局 fetch 函数
   const fetch = vi.spyOn(globalThis, "fetch");
 
+  // 在所有测试开始前设置测试服务器
   beforeAll(async () => {
     const app = createApp()
+      // 测试基本 GET 请求
       .use(
         "/ok",
         eventHandler(() => "ok")
       )
+      // 测试查询参数处理
       .use(
         "/params",
         eventHandler((event) => getQuery(event.node.req.url || ""))
       )
+      // 测试 URL 处理
       .use(
         "/url",
         eventHandler((event) => event.node.req.url)
       )
+      // 测试请求体回显
       .use(
         "/echo",
         eventHandler(async (event) => ({
@@ -53,6 +74,7 @@ describe("ofetch", () => {
           headers: event.node.req.headers,
         }))
       )
+      // 测试 POST 请求处理
       .use(
         "/post",
         eventHandler(async (event) => ({
@@ -60,6 +82,7 @@ describe("ofetch", () => {
           headers: event.node.req.headers,
         }))
       )
+      // 测试二进制数据响应
       .use(
         "/binary",
         eventHandler((event) => {
@@ -67,20 +90,24 @@ describe("ofetch", () => {
           return new Blob(["binary"]);
         })
       )
+      // 测试错误响应
       .use(
         "/403",
         eventHandler(() =>
           createError({ status: 403, statusMessage: "Forbidden" })
         )
       )
+      // 测试超时响应
       .use(
         "/408",
         eventHandler(() => createError({ status: 408 }))
       )
+      // 测试空响应
       .use(
         "/204",
         eventHandler(() => null) // eslint-disable-line unicorn/no-null
       )
+      // 测试请求超时
       .use(
         "/timeout",
         eventHandler(async () => {
@@ -95,18 +122,22 @@ describe("ofetch", () => {
     listener = await listen(toNodeListener(app));
   });
 
+  // 在所有测试结束后关闭服务器
   afterAll(() => {
     listener.close().catch(console.error);
   });
 
+  // 在每个测试前清除 fetch 模拟
   beforeEach(() => {
     fetch.mockClear();
   });
 
+  // 测试基本 GET 请求
   it("ok", async () => {
     expect(await $fetch(getURL("ok"))).to.equal("ok");
   });
 
+  // 测试自定义响应解析
   it("custom parseResponse", async () => {
     let called = 0;
     const parser = (r) => {
@@ -119,6 +150,7 @@ describe("ofetch", () => {
     expect(called).to.equal(1);
   });
 
+  // 测试不同的响应类型
   it("allows specifying FetchResponse method", async () => {
     expect(
       await $fetch(getURL("params?test=true"), { responseType: "json" })
@@ -134,16 +166,19 @@ describe("ofetch", () => {
     ).to.be.instanceOf(ArrayBuffer);
   });
 
+  // 测试二进制响应
   it("returns a blob for binary content-type", async () => {
     expect(await $fetch(getURL("binary"))).to.be.instanceOf(Blob);
   });
 
+  // 测试 baseURL 功能
   it("baseURL", async () => {
     expect(await $fetch("/x?foo=123", { baseURL: getURL("url") })).to.equal(
       "/x?foo=123"
     );
   });
 
+  // 测试 POST 请求体自动序列化
   it("stringifies posts body automatically", async () => {
     const { body } = await $fetch(getURL("post"), {
       method: "POST",
@@ -159,6 +194,7 @@ describe("ofetch", () => {
     ).body;
     expect(body2).to.deep.eq([{ num: 42 }, { num: 43 }]);
 
+    // 测试不同的请求头格式
     const headerFetches = [
       [["X-header", "1"]],
       { "x-header": "1" },
@@ -176,6 +212,7 @@ describe("ofetch", () => {
     }
   });
 
+  // 测试非 JSON 请求体处理
   it("does not stringify body when content type != application/json", async () => {
     const message = '"Hallo von Pascal"';
     const { body } = await $fetch(getURL("echo"), {
@@ -186,6 +223,7 @@ describe("ofetch", () => {
     expect(body).to.deep.eq(message);
   });
 
+  // 测试 Buffer 请求体
   it("Handle Buffer body", async () => {
     const message = "Hallo von Pascal";
     const { body } = await $fetch(getURL("echo"), {
@@ -196,6 +234,7 @@ describe("ofetch", () => {
     expect(body).to.deep.eq(message);
   });
 
+  // 测试 ReadableStream 请求体（仅 Node.js 18+）
   it.skipIf(Number(nodeMajorVersion) < 18)(
     "Handle ReadableStream body",
     async () => {
